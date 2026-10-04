@@ -24,3 +24,8 @@ def test_premium_allowed_after_checkout(client, auth_headers):
     r = client.get("/users/me/premium", headers=auth_headers)
     assert r.status_code == 200
     assert "pro" in r.json()["message"]
+
+
+def test_playground_page_is_served(client):
+    r = client.get("/")
+    assert r.status_code == 200 and "SaaS" in r.text and "/webhooks/stripe" in r.text

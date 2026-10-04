@@ -1,7 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -12,6 +14,7 @@ from app.db import init_db
 from app.routers import auth, billing, health, users, webhooks
 
 log = logging.getLogger(__name__)
+STATIC = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
@@ -44,4 +47,9 @@ def create_app() -> FastAPI:
 
     for r in (health.router, auth.router, users.router, billing.router, webhooks.router):
         app.include_router(r)
+
+    @app.get("/", include_in_schema=False)
+    def index():
+        return FileResponse(STATIC / "index.html")
+
     return app

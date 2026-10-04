@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>SaaS Backend Playground</title>
+<style>
+  :root {
+    --paper: #fff4dc; --card: #fffdf7; --ink: #1c1b33; --muted: #6a6780;
+    --orange: #ff6a3d; --mint: #36d6a0; --lemon: #ffd43b; --lilac: #c3b1ff; --sky: #8fd3ff; --rose: #ff9aa2;
+    --shadow: 4px 4px 0 var(--ink);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); font: 15px/1.55 ui-rounded, "Trebuchet MS", system-ui, sans-serif;
+         background-color: var(--paper); background-image: radial-gradient(var(--ink) 0.8px, transparent 0.8px);
+         background-size: 22px 22px; background-blend-mode: soft-light; }
+  .wrap { max-width: 1250px; margin: 0 auto; padding: 28px 16px 48px; display: grid;
+          grid-template-columns: 330px 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+  header { grid-column: 1 / -1; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .logo { width: 46px; height: 46px; display: grid; place-items: center; font-size: 24px; background: var(--lemon);
+          border: 3px solid var(--ink); border-radius: 14px; box-shadow: var(--shadow); transform: rotate(-6deg); }
+  h1 { font: 800 30px/1 Georgia, "Times New Roman", serif; margin: 0; letter-spacing: -.5px; }
+  h1 span { background: linear-gradient(transparent 58%, var(--mint) 58%); padding: 0 4px; }
+  h2 { font: 800 13px/1 ui-rounded, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .12em; margin: 0 0 12px; }
+  .badge { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 99px; background: var(--mint);
+           border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+  .badge.alt { background: var(--lilac); }
+  .meta { font-size: 12px; color: var(--muted); }
+  header > .meta { flex-basis: 100%; }
+  .panel { background: var(--card); border: 3px solid var(--ink); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
+  aside .panel + .panel, main .panel + .panel { margin-top: 22px; }
+  .users { background: var(--sky); }
+  .user { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 8px; text-align: left;
+          margin-bottom: 8px; padding: 7px 12px; font-size: 13px; }
+  .user:last-child { margin-bottom: 0; }
+  .user.on { background: var(--lemon); }
+  button { font: inherit; font-weight: 700; cursor: pointer; border-radius: 12px; border: 2px solid var(--ink);
+           background: var(--card); color: var(--ink); padding: 6px 12px; box-shadow: 2px 2px 0 var(--ink);
+           transition: transform .08s, box-shadow .08s; }
+  button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+  button:active { transform: translate(2px, 2px); box-shadow: none; }
+  button:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 2px 2px 0 var(--ink); }
+  button.primary { background: var(--orange); color: #fff; }
+  button.good { background: var(--mint); } button.bad { background: var(--rose); } button.alt { background: var(--lilac); }
+  .chip { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 10px; border-radius: 99px; border: 2px solid var(--ink);
+          letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; background: #fff; }
+  .chip.pro { background: var(--lilac); } .chip.basic { background: var(--sky); } .chip.free { background: #fff; }
+  .chip.active, .chip.trialing, .chip.ok { background: var(--mint); } .chip.past_due, .chip.warn { background: var(--lemon); }
+  .chip.canceled, .chip.err { background: var(--rose); }
+  label { display: block; font-size: 12px; font-weight: 800; margin: 10px 0 4px; letter-spacing: .04em; text-transform: uppercase; }
+  input, select { width: 100%; font: inherit; font-weight: 600; padding: 7px 12px; border-radius: 12px; border: 3px solid var(--ink);
+                  background: #fff; color: var(--ink); outline: none; }
+  input:focus, select:focus { box-shadow: 0 0 0 4px var(--lemon); }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .tile { border: 2px solid var(--ink); border-radius: 14px; padding: 8px 14px; background: #fff; }
+  .tile .k { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .tile .v { font-weight: 800; font-size: 17px; }
+  .result { margin-top: 12px; border: 3px solid var(--ink); border-radius: 14px; padding: 10px 14px; font-weight: 600; background: #fff; }
+  .result.ok { background: var(--mint); } .result.err { background: var(--rose); } .result.warn { background: var(--lemon); }
+  .result .t { font: 800 18px/1.2 Georgia, serif; }
+  code { font: 12px ui-monospace, Menlo, monospace; word-break: break-all; }
+  .log { font: 12px/1.6 ui-monospace, Menlo, monospace; background: #fff; border: 2px solid var(--ink); border-radius: 12px;
+         padding: 8px 12px; max-height: 260px; overflow: auto; }
+  .log div { display: flex; gap: 10px; align-items: baseline; }
+  .log .s { font-weight: 800; min-width: 34px; }
+  .log .s.ok { color: #0b7a54; } .log .s.err { color: #b3261e; }
+  .hint { font-size: 13px; margin-top: 8px; }
+  .empty { font-weight: 700; padding: 10px 0; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">🏗️</div>
+    <h1>SaaS <span>playground</span></h1>
+    <span id="mode" class="badge">loading…</span>
+    <span class="meta">Click through the whole backend: JWT auth, subscription gating, idempotent checkout, signed webhooks. Every request is logged at the bottom.
+      Full API docs: <a href="/docs">/docs</a>.</span>
+  </header>
+
+  <aside>
+    <div class="panel users">
+      <h2>Sign in as a demo user</h2>
+      <div id="users"></div>
+      <div class="meta" style="color:var(--ink);margin-top:8px">All demo users use the password <code>demo-password-123</code>.</div>
+    </div>
+    <div class="panel">
+      <h2>Session</h2>
+      <div id="session"><div class="empty">Not signed in.</div></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="panel">
+      <h2>Subscription &amp; premium gate</h2>
+      <div id="plan" class="grid"><div class="empty">Sign in to see the plan.</div></div>
+      <div class="row" style="margin-top:14px"><button id="premium" disabled>GET /users/me/premium</button>
+        <span class="meta">A paid plan opens it (200). Free or canceled gets 402.</span></div>
+      <div id="premiumRes"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Checkout (idempotent)</h2>
+      <div class="row">
+        <select id="plan-sel" style="max-width:140px"><option>basic</option><option selected>pro</option></select>
+        <input id="idem" style="max-width:220px" value="my-key-1" aria-label="Idempotency-Key">
+        <button id="checkout" class="primary" disabled>Start checkout</button>
+        <button id="pay" class="good" disabled>Pay (mock checkout)</button>
+      </div>
+      <div class="hint meta">Press "Start checkout" twice with the same key: you get the same session back instead of a second one. Change the plan with the same key: 409.</div>
+      <div id="checkoutRes"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Refresh tokens rotate</h2>
+      <div class="row"><button id="rotate" class="alt" disabled>Rotate refresh token</button>
+        <button id="replay" class="bad" disabled>Replay the previous token (attack)</button></div>
+      <div class="hint meta">Every refresh swaps the token for a new one. Presenting an old one looks like theft, so the whole login session is revoked.</div>
+      <div id="tokenRes"></div>
+    </div>
+
+    <div class="panel" id="hookPanel">
+      <h2>Webhook lab (demo mode)</h2>
+      <div class="row">
+        <select id="evtype" style="max-width:290px"><option>customer.subscription.deleted</option><option>invoice.payment_failed</option></select>
+        <input id="subid" style="max-width:200px" value="sub_seed_0003" aria-label="Stripe subscription id">
+        <button id="hook" class="primary">Send signed event</button>
+        <button id="hookAgain" class="alt" disabled>Send the same event again</button>
+      </div>
+      <div class="hint meta">The page signs the payload with the built-in demo secret (<code>t=…,v1=HMAC-SHA256</code>, same scheme as Stripe). The server verifies it on the raw body, then processes each event id once.</div>
+      <div id="hookRes"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Request log</h2>
+      <div id="log" class="log"><div class="meta">Nothing yet.</div></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const DEMO_SECRET = "whsec_demo_local_only_not_a_real_secret";  // same constant as app/config.py; demo mode only
+const USERS = [["demo@example.com", "pro"], ["alice@example.com", "basic"], ["bob@example.com", "pro"],
+               ["carol@example.com", "basic"], ["dave@example.com", "free"], ["erin@example.com", "free"]];
+let tok = null, me = null, prevRefresh = null, lastSession = null, lastEvent = null;
+
+function log(method, path, status) {
+  const l = $("#log"); if (l.querySelector(".meta")) l.innerHTML = "";
+  const d = document.createElement("div");
+  d.innerHTML = `<span class="s ${status < 400 ? "ok" : "err"}">${status}</span><span>${esc(method)} ${esc(path)}</span>`;
+  l.prepend(d);
+}
+async function api(method, path, { body, headers = {}, auth = true, raw } = {}) {
+  const h = { ...headers };
+  if (body && !raw) h["Content-Type"] = "application/json";
+  if (auth && tok) h.Authorization = `Bearer ${tok.access_token}`;
+  const r = await fetch(path, { method, headers: h, body: raw ?? (body ? JSON.stringify(body) : undefined) });
+  log(method, path, r.status);
+  const data = r.status === 204 ? null : await r.json().catch(() => ({}));
+  return { status: r.status, ok: r.ok, data };
+}
+const detail = (d) => typeof d?.detail === "string" ? d.detail : (d?.detail?.[0]?.msg || JSON.stringify(d));
+const box = (el, cls, title, msg) => { $(el).innerHTML = `<div class="result ${cls}"><div class="t">${esc(title)}</div>${msg}</div>`; };
+
+function renderUsers() {
+  $("#users").innerHTML = USERS.map(([e, p]) => `<button class="user ${me?.email === e ? "on" : ""}" data-email="${e}"><span>${esc(e.split("@")[0])}</span><span class="chip ${p}">${p}</span></button>`).join("");
+}
+function renderSession() {
+  const on = !!tok;
+  ["premium", "checkout", "rotate"].forEach((id) => ($("#" + id).disabled = !on));
+  $("#replay").disabled = !prevRefresh;
+  $("#pay").disabled = !lastSession;
+  if (!on) { $("#session").innerHTML = '<div class="empty">Not signed in.</div>'; $("#plan").innerHTML = '<div class="empty">Sign in to see the plan.</div>'; renderUsers(); return; }
+  $("#session").innerHTML = `<div><b>${esc(me?.email || "")}</b></div>
+    <div class="meta">access token lasts ${tok.expires_in}s · <code>…${esc(tok.access_token.slice(-10))}</code></div>
+    <div class="meta">refresh token <code>…${esc(tok.refresh_token.slice(-10))}</code></div>
+    <div class="row" style="margin-top:10px"><button id="logout" class="bad">Log out</button></div>`;
+  const s = me?.subscription;
+  $("#plan").innerHTML = s ? `<div class="tile"><div class="k">Plan</div><div class="v"><span class="chip ${s.plan}">${s.plan}</span></div></div>
+    <div class="tile"><div class="k">Status</div><div class="v"><span class="chip ${s.status}">${esc(s.status.replace("_", " "))}</span></div></div>
+    <div class="tile"><div class="k">Entitled to paid features</div><div class="v">${s.is_entitled ? "yes" : "no"}</div></div>
+    <div class="tile"><div class="k">Renews / ends</div><div class="v">${s.current_period_end ? esc(s.current_period_end.slice(0, 10)) : "–"}${s.cancel_at_period_end ? ' <span class="chip warn">cancels</span>' : ""}</div></div>`
+    : '<div class="empty">No subscription.</div>';
+  renderUsers();
+}
+async function loadMe() { const r = await api("GET", "/users/me"); me = r.ok ? r.data : null; renderSession(); }
+
+async function login(email, password = "demo-password-123") {
+  const r = await api("POST", "/auth/login", { body: { email, password }, auth: false });
+  if (!r.ok) { box("#premiumRes", "err", `Login failed (${r.status})`, esc(detail(r.data))); return; }
+  tok = r.data; prevRefresh = null; lastSession = null;
+  ["#premiumRes", "#checkoutRes", "#tokenRes"].forEach((e) => ($(e).innerHTML = ""));
+  await loadMe();
+}
+
+$("#users").addEventListener("click", (e) => { const b = e.target.closest("[data-email]"); if (b) login(b.dataset.email); });
+$("#session").addEventListener("click", async (e) => {
+  if (e.target.id !== "logout") return;
+  await api("POST", "/auth/logout", { body: { refresh_token: tok.refresh_token }, auth: false });
+  tok = me = prevRefresh = lastSession = null; renderSession();
+});
+$("#premium").addEventListener("click", async () => {
+  const r = await api("GET", "/users/me/premium");
+  r.ok ? box("#premiumRes", "ok", "200 · welcome in", esc(r.data.message)) : box("#premiumRes", "err", `${r.status} · blocked`, esc(detail(r.data)));
+});
+$("#checkout").addEventListener("click", async () => {
+  const r = await api("POST", "/billing/checkout", { body: { plan: $("#plan-sel").value }, headers: { "Idempotency-Key": $("#idem").value } });
+  if (!r.ok) { box("#checkoutRes", r.status === 409 ? "warn" : "err", `${r.status}`, esc(detail(r.data))); return; }
+  const again = lastSession === r.data.session_id;
+  lastSession = r.data.session_id; $("#pay").disabled = false;
+  box("#checkoutRes", again ? "warn" : "ok", again ? "Same session returned (idempotent)" : "Checkout session created",
+      `<code>${esc(r.data.session_id)}</code> · provider <b>${esc(r.data.provider)}</b>`);
+});
+$("#pay").addEventListener("click", async () => {
+  const r = await api("GET", `/billing/mock-checkout/${lastSession}`, { auth: false });
+  if (!r.ok) { box("#checkoutRes", "err", `${r.status}`, esc(detail(r.data))); return; }
+  lastSession = null; $("#pay").disabled = true;
+  box("#checkoutRes", "ok", "Paid", `${esc(r.data.status)} · <code>${esc(r.data.outcome)}</code>`);
+  await loadMe();
+});
+$("#rotate").addEventListener("click", async () => {
+  const old = tok.refresh_token;
+  const r = await api("POST", "/auth/refresh", { body: { refresh_token: old }, auth: false });
+  if (!r.ok) { box("#tokenRes", "err", `${r.status}`, esc(detail(r.data))); return; }
+  prevRefresh = old; tok = r.data; renderSession();
+  box("#tokenRes", "ok", "New token pair issued", `The previous refresh token is now marked used.`);
+});
+$("#replay").addEventListener("click", async () => {
+  const r = await api("POST", "/auth/refresh", { body: { refresh_token: prevRefresh }, auth: false });
+  const r2 = await api("POST", "/auth/refresh", { body: { refresh_token: tok.refresh_token }, auth: false });
+  box("#tokenRes", "err", `Replay rejected (${r.status}), session revoked`,
+      `${esc(detail(r.data))}<br>The current token now fails too: <b>${r2.status}</b> ${esc(detail(r2.data))}. Log in again to continue.`);
+});
+
+async function sign(payload, secret) {
+  const t = Math.floor(Date.now() / 1000), enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = await crypto.subtle.sign("HMAC", key, enc.encode(`${t}.${payload}`));
+  return `t=${t},v1=${[...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+}
+async function sendHook(payload) {
+  const r = await api("POST", "/webhooks/stripe", { auth: false, raw: payload, headers: { "Content-Type": "application/json", "Stripe-Signature": await sign(payload, DEMO_SECRET) } });
+  const dup = r.data?.status === "duplicate";
+  box("#hookRes", r.ok ? (dup ? "warn" : "ok") : "err", r.ok ? (dup ? "duplicate: ignored, nothing changed" : "processed") : `${r.status} rejected`,
+      r.ok ? `<code>${esc(r.data.outcome)}</code>` : esc(detail(r.data)));
+  if (me) await loadMe();
+}
+$("#hook").addEventListener("click", async () => {
+  const type = $("#evtype").value, sub = $("#subid").value;
+  const obj = type.startsWith("invoice.") ? { object: "invoice", subscription: sub } : { id: sub, object: "subscription", status: "canceled" };
+  lastEvent = JSON.stringify({ id: "evt_page_" + Math.random().toString(16).slice(2, 14), object: "event", type, created: Math.floor(Date.now() / 1000), livemode: false, data: { object: obj } });
+  $("#hookAgain").disabled = false; await sendHook(lastEvent);
+});
+$("#hookAgain").addEventListener("click", () => sendHook(lastEvent));
+
+(async () => {
+  const h = await (await fetch("/health")).json();
+  $("#mode").textContent = h.demo_mode ? `demo mode · ${h.payments_provider} payments` : `live · ${h.payments_provider}`;
+  $("#hookPanel").hidden = !h.demo_mode;
+  renderUsers();
+})();
+</script>
+</body>
+</html>

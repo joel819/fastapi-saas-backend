@@ -2,6 +2,12 @@
 
 A FastAPI SaaS backend with JWT auth, subscriptions, verified and idempotent Stripe webhooks, and rate limiting. It runs locally for free.
 
+## Screenshot
+
+The playground at http://localhost:8000. Here a free user (erin) is blocked from the premium route with `402`, starts a checkout (a second press with the same `Idempotency-Key` returns the same session), pays through the mock checkout, rotates a refresh token, and then sends a signed webhook twice: the first is processed, the replay is ignored. Every request is listed in the log.
+
+![The SaaS playground: demo users, plan and premium gate, idempotent checkout, token rotation, webhook lab and the request log](docs/screenshots/playground.png)
+
 ## What it does
 
 - **Auth:** register, login, refresh and logout. Access tokens last 15 minutes. Refresh tokens rotate on every use, and replaying an old one revokes that login's whole session.
@@ -9,7 +15,8 @@ A FastAPI SaaS backend with JWT auth, subscriptions, verified and idempotent Str
 - **Billing:** checkout sessions through Stripe (test mode) or a built-in mock provider. `Idempotency-Key` headers make checkout retries safe.
 - **Webhooks:** `POST /webhooks/stripe` checks the signature against the raw request body, rejects stale timestamps, and processes each event id once. A replayed event returns `200 duplicate` and changes nothing.
 - **Rate limiting:** limits apply per user for authenticated requests and per IP for anonymous ones. Auth routes are capped at 5 per minute by default.
-- **Tests:** 41 pytest tests that need no API keys and no network access.
+- **Playground page** at `/`: sign in as a demo user, hit the premium gate, run a checkout, rotate or replay a refresh token, and send signed webhooks, all from the browser with a live request log.
+- **Tests:** 42 pytest tests that need no API keys and no network access.
 
 ## Quickstart
 
@@ -61,6 +68,27 @@ curl localhost:8000/users/me/premium -H "Authorization: Bearer $TOKEN"
 # 5. Send a signed webhook twice: the first is processed, the replay is ignored
 python -m scripts.send_test_webhook --replay
 ```
+
+### Example run
+
+Real output from the steps above, run against a fresh server in demo mode:
+
+```text
+$ # 1. log in as a free user (erin@example.com)
+$ # 2. premium is blocked
+{"detail":"An active paid subscription is required"}  -> HTTP 402
+$ # 3. start a checkout
+{"session_id":"cs_mock_eb7442717d5a43d1a946372b","checkout_url":"http://localhost:8000/billing/mock-checkout/cs_mock_eb7442717d5a43d1a946372b","provider":"mock"}
+$ # 4. open the checkout_url to "pay"
+{"status":"processed","outcome":"subscription_activated","event_id":"evt_mock_f4cc76d83c594096b862d4b3"}
+$ # 5. premium now works
+{"message":"Welcome to the pro plan, erin@example.com."}  -> HTTP 200
+$ # 6. send a signed webhook twice
+attempt 1: 200 {"status":"processed","outcome":"subscription_canceled"}
+attempt 2: 200 {"status":"duplicate","outcome":"subscription_canceled"}
+```
+
+A free user is blocked with `402`, upgrades through checkout and gets in with `200`. The same signed webhook sent twice is processed once, and the replay returns `duplicate` without changing anything.
 
 ## Architecture
 
