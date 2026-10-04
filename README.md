@@ -62,6 +62,27 @@ curl localhost:8000/users/me/premium -H "Authorization: Bearer $TOKEN"
 python -m scripts.send_test_webhook --replay
 ```
 
+### Example run
+
+Real output from the steps above, run against a fresh server in demo mode:
+
+```text
+$ # 1. log in as a free user (erin@example.com)
+$ # 2. premium is blocked
+{"detail":"An active paid subscription is required"}  -> HTTP 402
+$ # 3. start a checkout
+{"session_id":"cs_mock_eb7442717d5a43d1a946372b","checkout_url":"http://localhost:8000/billing/mock-checkout/cs_mock_eb7442717d5a43d1a946372b","provider":"mock"}
+$ # 4. open the checkout_url to "pay"
+{"status":"processed","outcome":"subscription_activated","event_id":"evt_mock_f4cc76d83c594096b862d4b3"}
+$ # 5. premium now works
+{"message":"Welcome to the pro plan, erin@example.com."}  -> HTTP 200
+$ # 6. send a signed webhook twice
+attempt 1: 200 {"status":"processed","outcome":"subscription_canceled"}
+attempt 2: 200 {"status":"duplicate","outcome":"subscription_canceled"}
+```
+
+A free user is blocked with `402`, upgrades through checkout and gets in with `200`. The same signed webhook sent twice is processed once, and the replay returns `duplicate` without changing anything.
+
 ## Architecture
 
 ```
